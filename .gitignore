@@ -1,0 +1,30 @@
+# Gradle
+.gradle/
+build/
+!gradle-wrapper.jar
+# Ignore GUI generated files
+.idea/
+*.iml
+*.ipr
+*.iws
+# Forge MDK reference (large, not needed in repo)
+forge-1.8.9-MDK/
+# Eclipse
+.settings/
+.project
+.classpath
+# Mac OS
+.DS_Store
+# Logs
+*.log
+# IntelliJ
+out/
+# Maven
+target/
+# Package Files
+*.war
+*.ear
+*.jar
+# STS
+.apt_generated
+.factorypath
