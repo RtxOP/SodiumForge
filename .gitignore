@@ -7,8 +7,9 @@ build/
 *.iml
 *.ipr
 *.iws
-# Forge MDK reference (large, not needed in repo)
+# Reference clonies for upstream code lookup (not part of the build)
 forge-1.8.9-MDK/
+Radium-Reference/
 # Eclipse
 .settings/
 .project
