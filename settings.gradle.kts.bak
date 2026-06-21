@@ -1,0 +1,8 @@
+rootProject.name = "radium-forge"
+
+// Include the common module from Radium
+include("common")
+project(":common").projectDir = file("Radium/common") as File
+
+// Include the forge module
+include("forge")

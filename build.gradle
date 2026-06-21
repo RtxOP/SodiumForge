@@ -1,0 +1,63 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
+    }
+}
+apply plugin: 'net.minecraftforge.gradle.forge'
+
+version = "0.8.15"
+group= "com.github.sonagg"
+archivesBaseName = "radium"
+
+minecraft {
+    version = "1.8.9-11.15.1.2318-1.8.9"
+    runDir = "run"
+    mappings = "stable_20"
+}
+
+repositories {
+    mavenCentral()
+    jcenter()
+    maven { url "https://maven.fabricmc.net/" }
+    maven { url "https://jitpack.io/" }
+    maven { url "https://repo.spongepowered.org/maven" }
+}
+
+dependencies {
+    // Mixin support (0.7.11 is stable with FG 2.1; will upgrade if needed later)
+    compile('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
+        exclude module: 'launchwrapper'
+        exclude module: 'guava'
+        exclude module: 'gson'
+        exclude module: 'commons-io'
+    }
+
+    // Common module libraries
+    compile 'org.joml:joml:1.10.8'
+    compile 'io.github.llamalad7:mixinextras-common:0.3.5'
+    compile 'net.java.dev.jna:jna:5.14.0'
+    compile 'net.java.dev.jna:jna-platform:5.14.0'
+    compile 'org.slf4j:slf4j-api:2.0.9'
+    compile 'org.jetbrains:annotations:25.0.0'
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+        expand 'version':project.version, 'mcversion':project.minecraft.version
+    }
+
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
