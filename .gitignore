@@ -1,7 +1,6 @@
 # Gradle
 .gradle/
 build/
-!gradle-wrapper.jar
 # Ignore GUI generated files
 .idea/
 *.iml
@@ -22,10 +21,11 @@ Radium-Reference/
 out/
 # Maven
 target/
-# Package Files
+# Package Files (ignore built artifacts but keep gradle-wrapper.jar)
 *.war
 *.ear
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
 # STS
 .apt_generated
 .factorypath
