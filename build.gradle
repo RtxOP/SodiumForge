@@ -32,7 +32,10 @@ minecraft {
     version  = '1.8.9-11.15.1.2318-1.8.9'
     runDir   = 'run'
     // Forge 1.8.9 + ForgeGradle 2.1 were tested against SRG/MCP `stable_20`.
-    mappings = 'stable_20'
+    // SRG/MCP stable_22 matches MC 1.8.9 (stable_20 was generated against 1.8.8
+    // — using it on 1.8.9 produces class-name/field-name drift that surfaces as
+    // mixins referencing non-existent members at runtime).
+    mappings = 'stable_22'
     makeObfSourceJar = false
 }
 
