@@ -8,16 +8,18 @@ buildscript {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
         // MixinGradle: emits the refmap the runtime MixinLoader expects.
         classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
+        // Shadow: bundles Mixin into the produced JAR.
+        // Loaded the ForgeGradle-2.x compatible way (classpath + apply)
+        // because the Plugin Portal marker resolves shadow to its 8.x
+        // release, which forbids Gradle <3.0.
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
     }
 }
 
-plugins {
-    id 'java'
-    id 'com.github.johnrengelman.shadow' version '2.0.4'
-}
-
+apply plugin: 'java'
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
+apply plugin: 'shadow'
 
 version          = '0.8.15'
 group            = 'com.github.sonagg'
