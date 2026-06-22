@@ -3,6 +3,7 @@
   "minVersion": "0.8",
   "package": "gg.sona.radium.mixin",
   "compatibilityLevel": "JAVA_8",
+  "refmap": "radium-forge.mixins.refmap.json",
   "client": [
     "core.MixinBaseFrustum",
     "core.MixinBufferBuilder",
