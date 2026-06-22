@@ -1,45 +1,66 @@
 buildscript {
     repositories {
-        jcenter()
-        maven {
-            name = "forge"
-            url = "http://files.minecraftforge.net/maven"
-        }
+        maven { url 'https://maven.minecraftforge.net' }
+        maven { url 'https://repo.spongepowered.org/maven' }
+        mavenCentral()
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
+        // MixinGradle: emits the refmap the runtime MixinLoader expects.
+        classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
     }
 }
-apply plugin: 'net.minecraftforge.gradle.forge'
 
-version = "0.8.15"
-group= "com.github.sonagg"
-archivesBaseName = "radium"
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
+}
+
+apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'org.spongepowered.mixin'
+
+version          = '0.8.15'
+group            = 'com.github.sonagg'
+archivesBaseName = 'radium'
+
+sourceCompatibility = targetCompatibility = 1.8
+compileJava.options.encoding = 'UTF-8'
 
 minecraft {
-    version = "1.8.9-11.15.1.2318-1.8.9"
-    runDir = "run"
-    mappings = "stable_20"
+    version  = '1.8.9-11.15.1.2318-1.8.9'
+    runDir   = 'run'
+    // Forge 1.8.9 + ForgeGradle 2.1 were tested against SRG/MCP `stable_20`.
+    mappings = 'stable_20'
+    makeObfSourceJar = false
+}
+
+// `shade` is the configuration consumed by the shadow plugin to bundle
+// Mixin into the produced JAR — Mixin is not on Forge 1.8.9's classpath.
+configurations {
+    shade
+    compile.extendsFrom shade
 }
 
 repositories {
+    maven { url 'https://repo.spongepowered.org/maven' }
     mavenCentral()
-    jcenter()
-    maven { url "https://maven.fabricmc.net/" }
-    maven { url "https://jitpack.io/" }
-    maven { url "https://repo.spongepowered.org/maven" }
 }
 
 dependencies {
-    // Mixin support (0.7.11 is stable with FG 2.1; will upgrade if needed later)
-    compile('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
+    // Runtime mixin — shaded into the output JAR so the produced mod
+    // is self-contained on Forge 1.8.9. The exclusions dodge the
+    // launchwrapper/guava/gson/commons-io copies that Forge/AW already
+    // ships on its own classpath.
+    shade('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
         exclude module: 'launchwrapper'
         exclude module: 'guava'
         exclude module: 'gson'
         exclude module: 'commons-io'
+        exclude module: 'log4j-core'
     }
 
-    // Common module libraries
+    // Sodium/Radium port libs — present at compile + runtime. JNA & JOML
+    // are platform natives; if you want them bundled, move these to shade.
     compile 'org.joml:joml:1.10.8'
     compile 'io.github.llamalad7:mixinextras-common:0.3.5'
     compile 'net.java.dev.jna:jna:5.14.0'
@@ -49,15 +70,50 @@ dependencies {
 }
 
 processResources {
-    inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
+    inputs.property 'version',   project.version
+    inputs.property 'mcversion', project.minecraft.version
 
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
-        expand 'version':project.version, 'mcversion':project.minecraft.version
+        expand 'version': project.version, 'mcversion': project.minecraft.version
     }
-
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
+    }
+    rename '(.+_at\\.cfg)', 'META-INF/$1'
+}
+
+shadowJar {
+    configurations       = [project.configurations.shade]
+    duplicatesStrategy   = DuplicatesStrategy.EXCLUDE
+    classifier           = ''
+}
+
+// Reobf is a ForgeGradle 2.1 task that runs after `shadowJar`. It
+// applies SRG remapping to the produced universal jar.
+reobf {
+    shadowJar {}
+}
+
+// JAR manifest attributes instruct Forge 1.8.9 to load Mixin at
+// launcher time. Without these, mixins silently no-op.
+jar {
+    manifest.attributes(
+        'FMLCorePlugin'               : 'com.github.sonagg.radium.MixinLoader',
+        'FMLCorePluginContainsFMLMod' : 'true',
+        'TweakClass'                  : 'org.spongepowered.asm.launch.MixinTweaker',
+        'TweakOrder'                  : 0,
+        'ModSide'                     : 'CLIENT',
+        'ForceLoadAsMod'              : 'true',
+        'MixinConfigs'                : 'radium-forge.mixins.json'
+    )
+}
+
+// Reference map: written by MixinGradle during `build`. The runtime
+// MixinLoader consults this so SRG-mapped targets in production mode
+// resolve back to obfuscated MCP names.
+sourceSets {
+    main {
+        ext.refMap = 'radium-forge.mixins.refmap.json'
     }
 }
